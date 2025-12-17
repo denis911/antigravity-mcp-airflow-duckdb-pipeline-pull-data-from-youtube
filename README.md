@@ -8,7 +8,7 @@ An Apache Airflow pipeline that pulls YouTube video data based on a specified to
 - **Comprehensive Data Collection**: Collect video URLs, titles, descriptions, and transcripts
 - **Transcript Extraction**: Automatically fetch video transcripts where available
 - **Persistent Storage**: Store all data in DuckDB for fast querying and analysis
-- **MCP Integration**: Uses Context7 MCP server for YouTube API interactions
+- **Simple Architecture**: Direct API calls without complex middleware
 
 ## Tech Stack
 
@@ -17,7 +17,6 @@ An Apache Airflow pipeline that pulls YouTube video data based on a specified to
 - **YouTube Data API v3**: For video search and metadata
 - **YouTube Transcript API**: For transcript extraction
 - **Python**: Core programming language
-- **MCP (Model Context Protocol)**: Context7 server for API interactions
 
 ## Project Structure
 
@@ -25,15 +24,8 @@ An Apache Airflow pipeline that pulls YouTube video data based on a specified to
 antigravity-mcp-airflow-duckdb-pipeline-pull-data-from-youtube/
 ├── dags/
 │   └── youtube_pipeline.py          # Main Airflow DAG
-├── C:\Users\d_local\Documents\Cline\MCP\youtube-server/  # Context7 MCP Server
-│   ├── src/youtube-server/
-│   │   └── index.ts                 # MCP server implementation
-│   ├── package.json                 # Node.js dependencies
-│   ├── tsconfig.json               # TypeScript configuration
-│   └── build/                      # Compiled JavaScript (after build)
 ├── README.md                        # This file
-├── .gitignore                      # Git ignore rules
-└── requirements.txt               # Python dependencies (to be created)
+└── .gitignore                      # Git ignore rules
 ```
 
 ### Key Components
@@ -43,38 +35,12 @@ antigravity-mcp-airflow-duckdb-pipeline-pull-data-from-youtube/
    - Contains two main tasks: search and process videos
    - Handles topic input and data persistence
 
-2. **Context7 MCP Server**:
-   - Custom MCP server for YouTube API interactions
-   - Provides `search_videos` and `get_transcript` tools
-   - Enables modular API access through MCP protocol
-
-3. **DuckDB Database**:
+2. **DuckDB Database**:
    - Stores video metadata and transcripts
    - Optimized for analytical queries
    - File-based database for easy deployment
 
-## How Context7 MCP Server Works
 
-The Context7 MCP server acts as an intermediary between your applications and the YouTube API:
-
-### Server Architecture
-- **Framework**: Built using Model Context Protocol (MCP) SDK
-- **Language**: TypeScript/Node.js for robust API handling
-- **Tools Provided**:
-  - `search_videos`: Searches YouTube for videos based on topics
-  - `get_transcript`: Extracts transcripts from individual videos
-
-### API Integration
-1. **Authentication**: Uses YouTube Data API v3 with API key authentication
-2. **Search Functionality**: Calls YouTube Search API to find relevant videos
-3. **Transcript Extraction**: Uses YouTube Transcript API for caption retrieval
-4. **Error Handling**: Graceful handling of API limits and unavailable transcripts
-
-### Usage in Data Pipeline
-The MCP server provides a standardized interface for YouTube data access:
-- **Modularity**: Separates API logic from pipeline orchestration
-- **Reusability**: Can be used by multiple applications
-- **Maintainability**: Centralized API key management and error handling
 
 ## DAG Architecture and Workflow
 
@@ -180,7 +146,6 @@ print(df.groupby('topic')['transcript_length'].describe())
 - Python 3.8+
 - Apache Airflow 2.x
 - YouTube Data API v3 key (get from [Google Cloud Console](https://console.developers.google.com/))
-- Node.js (for MCP server)
 
 ## Installation
 
@@ -205,31 +170,97 @@ print(df.groupby('topic')['transcript_length'].describe())
    airflow db init
    ```
 
-## MCP Server Setup
 
-The project uses a custom MCP server (Context7) for YouTube API interactions.
+## Local Setup and Running
 
-1. Build the MCP server:
+### 1. Environment Setup
+
+Create a virtual environment and install dependencies:
+
+```bash
+# Create virtual environment
+python -m venv airflow_env
+source airflow_env/bin/activate  # On Windows: airflow_env\Scripts\activate
+
+# Install dependencies
+pip install apache-airflow duckdb requests youtube-transcript-api
+```
+
+### 2. Airflow Initialization
+
+```bash
+# Set AIRFLOW_HOME (optional, defaults to ~/airflow)
+export AIRFLOW_HOME=./airflow_home
+
+# Initialize Airflow database
+airflow db init
+
+# Create admin user
+airflow users create \
+    --username admin \
+    --firstname Admin \
+    --lastname User \
+    --role Admin \
+    --email admin@example.com
+```
+
+### 3. Configure YouTube API
+
+Get your API key from [Google Cloud Console](https://console.developers.google.com/):
+
+1. Create a new project or select existing one
+2. Enable YouTube Data API v3
+3. Create credentials (API Key)
+4. Set environment variable:
    ```bash
-   cd C:\Users\d_local\Documents\Cline\MCP\youtube-server
-   npm install
-   npm run build
+   export YOUTUBE_API_KEY="your_actual_api_key_here"
    ```
 
-2. Add to MCP settings (cline_mcp_settings.json):
-   ```json
-   {
-     "mcpServers": {
-       "Context7": {
-         "command": "node",
-         "args": ["C:\\Users\\d_local\\Documents\\Cline\\MCP\\youtube-server\\build\\index.js"],
-         "env": {
-           "YOUTUBE_API_KEY": "your_youtube_api_key_here"
-         }
-       }
-     }
-   }
-   ```
+### 4. Setup DAG Directory
+
+```bash
+# Copy DAG to Airflow dags folder
+cp dags/youtube_pipeline.py $AIRFLOW_HOME/dags/
+
+# Or set AIRFLOW__CORE__DAGS_FOLDER to current directory
+export AIRFLOW__CORE__DAGS_FOLDER=./dags
+```
+
+### 5. Run Airflow
+
+```bash
+# Start scheduler (runs DAGs)
+airflow scheduler
+
+# In another terminal, start webserver
+airflow webserver --port 8080
+```
+
+### 6. Access Airflow UI
+
+Open http://localhost:8080 in your browser and login with:
+- Username: admin
+- Password: (whatever you set during user creation)
+
+### 7. Run the Pipeline
+
+1. In Airflow UI, find `youtube_data_pipeline` DAG
+2. Click the toggle to enable it
+3. Click "Trigger DAG" to run immediately
+4. Monitor progress in the UI
+
+### 8. Check Results
+
+```bash
+# Connect to DuckDB and query results
+python -c "
+import duckdb
+con = duckdb.connect('./data/youtube_data.db')
+result = con.execute('SELECT COUNT(*) as total_videos FROM videos').fetchone()
+print(f'Total videos collected: {result[0]}')
+con.close()
+"
+```
 
 ## Usage
 
