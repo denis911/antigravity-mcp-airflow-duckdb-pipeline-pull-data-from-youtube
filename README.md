@@ -1,4 +1,4 @@
-# Antigravity YouTube Data Pipeline
+# YouTube Data Pipeline
 
 An Apache Airflow pipeline that pulls YouTube video data based on a specified topic, retrieves video transcripts, and persists the data in DuckDB for efficient querying and analysis.
 
@@ -20,7 +20,7 @@ An Apache Airflow pipeline that pulls YouTube video data based on a specified to
 
 ## Project Structure
 
-```
+```bash
 antigravity-mcp-airflow-duckdb-pipeline-pull-data-from-youtube/
 ├── dags/
 │   └── youtube_pipeline.py          # Main Airflow DAG
@@ -40,11 +40,10 @@ antigravity-mcp-airflow-duckdb-pipeline-pull-data-from-youtube/
    - Optimized for analytical queries
    - File-based database for easy deployment
 
-
-
 ## DAG Architecture and Workflow
 
 ### DAG Structure
+
 ```python
 youtube_data_pipeline (DAG)
 ├── search_task (PythonOperator)
@@ -74,6 +73,7 @@ youtube_data_pipeline (DAG)
 
 4. **Data Persistence**:
    - All data stored in DuckDB with schema:
+
      ```sql
      CREATE TABLE videos (
          video_id VARCHAR PRIMARY KEY,
@@ -86,6 +86,7 @@ youtube_data_pipeline (DAG)
      ```
 
 ### Scheduling and Execution
+
 - **Schedule**: Configurable (default: daily)
 - **Retries**: 1 retry with 5-minute delay on failure
 - **Dependencies**: Sequential execution (search → process)
@@ -93,6 +94,7 @@ youtube_data_pipeline (DAG)
 ## Data Analysis with DuckDB
 
 ### Why DuckDB?
+
 - **Performance**: Fast analytical queries on structured data
 - **Simplicity**: File-based database, no server required
 - **SQL Support**: Standard SQL for complex queries
@@ -127,6 +129,7 @@ ORDER BY date DESC;
 ```
 
 ### Python Analysis Example
+
 ```python
 import duckdb
 
@@ -150,26 +153,29 @@ print(df.groupby('topic')['transcript_length'].describe())
 ## Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/denis911/antigravity-mcp-airflow-duckdb-pipeline-pull-data-from-youtube.git
    cd antigravity-mcp-airflow-duckdb-pipeline-pull-data-from-youtube
    ```
 
 2. Install Python dependencies:
+
    ```bash
    pip install apache-airflow duckdb requests youtube-transcript-api
    ```
 
 3. Set up YouTube API key:
+
    ```bash
    export YOUTUBE_API_KEY="your_youtube_api_key_here"
    ```
 
 4. Initialize Airflow (if not already done):
+
    ```bash
    airflow db init
    ```
-
 
 ## Local Setup and Running
 
@@ -212,6 +218,7 @@ Get your API key from [Google Cloud Console](https://console.developers.google.c
 2. Enable YouTube Data API v3
 3. Create credentials (API Key)
 4. Set environment variable:
+
    ```bash
    export YOUTUBE_API_KEY="your_actual_api_key_here"
    ```
@@ -267,19 +274,23 @@ con.close()
 1. Place the DAG file in your Airflow dags folder
 2. Update the topic in the DAG (currently set to 'machine learning')
 3. Start Airflow:
+
    ```bash
    airflow scheduler &
    airflow webserver &
    ```
+
 4. Trigger the DAG from the Airflow UI or CLI
 
 ## Configuration
 
 ### Environment Variables
+
 - `YOUTUBE_API_KEY`: Required for YouTube API access
 - `DUCKDB_PATH`: Path to DuckDB database (default: /opt/airflow/data/youtube_data.db)
 
 ### DAG Parameters
+
 - `topic`: Search topic (default: 'machine learning')
 - `max_results`: Number of videos to process (default: 5)
 - `schedule_interval`: How often to run the pipeline
@@ -287,11 +298,13 @@ con.close()
 ## Monitoring and Maintenance
 
 ### Airflow UI
+
 - Monitor DAG runs and task status
 - View logs for debugging
 - Manually trigger runs for testing
 
 ### Database Maintenance
+
 ```sql
 -- Check data volume
 SELECT COUNT(*) FROM videos;
@@ -304,6 +317,7 @@ VACUUM;
 ```
 
 ### API Quotas
+
 - Monitor YouTube API quota usage
 - Handle rate limits gracefully
 - Consider upgrading API quotas for production use
@@ -326,6 +340,7 @@ VACUUM;
 4. **Airflow Not Starting**: Verify Python path and dependencies
 
 ### Logs
+
 Check Airflow logs in the UI or log files for detailed error messages.
 
 ## Future Enhancements
@@ -335,10 +350,6 @@ Check Airflow logs in the UI or log files for detailed error messages.
 - **Advanced analytics**: Sentiment analysis on transcripts
 - **Dashboard integration**: Connect with BI tools like Tableau
 - **Notification system**: Alert on pipeline failures or new content
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## Disclaimer
 
