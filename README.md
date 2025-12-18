@@ -46,9 +46,9 @@ antigravity-mcp-airflow-duckdb-pipeline-pull-data-from-youtube/
 
 ```python
 youtube_data_pipeline (DAG)
-├── search_task (PythonOperator)
+├── search_videos (@task)
 │   └── Searches YouTube for videos
-└── process_task (PythonOperator)
+└── process_videos (@task)
     └── Retrieves transcripts and stores in DuckDB
 ```
 
@@ -168,7 +168,11 @@ print(df.groupby('topic')['transcript_length'].describe())
 3. Set up YouTube API key:
 
    ```bash
+   # Unix/macOS
    export YOUTUBE_API_KEY="your_youtube_api_key_here"
+   
+   # Windows (PowerShell)
+   $env:YOUTUBE_API_KEY="your_youtube_api_key_here"
    ```
 
 4. Initialize Airflow (if not already done):
@@ -196,7 +200,10 @@ pip install apache-airflow duckdb requests youtube-transcript-api
 
 ```bash
 # Set AIRFLOW_HOME (optional, defaults to ~/airflow)
+# Unix/macOS
 export AIRFLOW_HOME=./airflow_home
+# Windows (PowerShell)
+$env:AIRFLOW_HOME="./airflow_home"
 
 # Initialize Airflow database
 airflow db init
@@ -220,7 +227,10 @@ Get your API key from [Google Cloud Console](https://console.developers.google.c
 4. Set environment variable:
 
    ```bash
+   # Unix/macOS
    export YOUTUBE_API_KEY="your_actual_api_key_here"
+   # Windows (PowerShell)
+   $env:YOUTUBE_API_KEY="your_actual_api_key_here"
    ```
 
 ### 4. Setup DAG Directory
@@ -230,7 +240,10 @@ Get your API key from [Google Cloud Console](https://console.developers.google.c
 cp dags/youtube_pipeline.py $AIRFLOW_HOME/dags/
 
 # Or set AIRFLOW__CORE__DAGS_FOLDER to current directory
+# Unix/macOS
 export AIRFLOW__CORE__DAGS_FOLDER=./dags
+# Windows (PowerShell)
+$env:AIRFLOW__CORE__DAGS_FOLDER="./dags"
 ```
 
 ### 5. Run Airflow
