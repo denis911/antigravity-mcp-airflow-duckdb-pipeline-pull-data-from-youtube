@@ -165,14 +165,15 @@ print(df.groupby('topic')['transcript_length'].describe())
    pip install apache-airflow duckdb requests youtube-transcript-api
    ```
 
-3. Set up YouTube API key:
+3. Set up YouTube API key as Airflow Variable:
 
    ```bash
-   # Unix/macOS
-   export YOUTUBE_API_KEY="your_youtube_api_key_here"
+   # Via Airflow CLI
+   airflow variables set youtube_api_key "your_youtube_api_key_here"
    
-   # Windows (PowerShell)
-   $env:YOUTUBE_API_KEY="your_youtube_api_key_here"
+   # Via Airflow UI: Admin → Variables → Create Variable
+   # Key: youtube_api_key
+   # Value: your_youtube_api_key_here
    ```
 
 4. Initialize Airflow (if not already done):
@@ -224,13 +225,15 @@ Get your API key from [Google Cloud Console](https://console.developers.google.c
 1. Create a new project or select existing one
 2. Enable YouTube Data API v3
 3. Create credentials (API Key)
-4. Set environment variable:
+4. Set Airflow Variable:
 
    ```bash
-   # Unix/macOS
-   export YOUTUBE_API_KEY="your_actual_api_key_here"
-   # Windows (PowerShell)
-   $env:YOUTUBE_API_KEY="your_actual_api_key_here"
+   # Via Airflow CLI
+   airflow variables set youtube_api_key "your_actual_api_key_here"
+   
+   # Or via Airflow UI: Admin → Variables → Create Variable
+   # Key: youtube_api_key
+   # Value: your_actual_api_key_here
    ```
 
 ### 4. Setup DAG Directory
@@ -259,6 +262,7 @@ airflow webserver --port 8080
 ### 6. Access Airflow UI
 
 Open http://localhost:8080 in your browser and login with:
+
 - Username: admin
 - Password: (whatever you set during user creation)
 
@@ -297,16 +301,16 @@ con.close()
 
 ## Configuration
 
-### Environment Variables
+### Airflow Variables
 
-- `YOUTUBE_API_KEY`: Required for YouTube API access
-- `DUCKDB_PATH`: Path to DuckDB database (default: /opt/airflow/data/youtube_data.db)
+- `youtube_api_key`: Required for YouTube API access (set via Airflow UI or CLI)
+- `duckdb_path`: Path to DuckDB database (default: /opt/airflow/data/youtube_data.db)
 
 ### DAG Parameters
 
 - `topic`: Search topic (default: 'machine learning')
 - `max_results`: Number of videos to process (default: 5)
-- `schedule_interval`: How often to run the pipeline
+- `schedule`: How often to run the pipeline (default: daily)
 
 ## Monitoring and Maintenance
 
@@ -347,9 +351,9 @@ VACUUM;
 
 ### Common Issues
 
-1. **API Key Errors**: Ensure YOUTUBE_API_KEY is set correctly
+1. **API Key Errors**: Ensure `youtube_api_key` Airflow Variable is set correctly (Admin → Variables in Airflow UI)
 2. **Transcript Not Available**: Some videos don't have transcripts
-3. **Database Connection**: Check DuckDB file permissions
+3. **Database Connection**: Check DuckDB file permissions and path
 4. **Airflow Not Starting**: Verify Python path and dependencies
 
 ### Logs
